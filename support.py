@@ -7,6 +7,7 @@ import sys
 import json
 import signal
 import traceback
+import re
 
 stopped = False
 def terminate(signum, frame):
@@ -44,7 +45,7 @@ def choose_member(remaining, members, member_ids):
 
 
 if __name__ == "__main__":
-	debug = False 
+	debug = True 
 
 	try:
 		with open('config.json') as config_file:
@@ -88,7 +89,7 @@ if __name__ == "__main__":
 	        for message in messages['data']['messages']:
 	            if last_date is not None and message['date'] > last_date:
 	                message_text = message['message'].lower()
-	                if "handoff" in message_text and "mixpanel.com/admin/internal/users/breakdown" in message_text:
+	                if "handoff" in message_text and re.match(r"[^@]+@[^@]+\.[^@]+", message_text):
 						chosen, members = choose_member(remaining,members, member_ids)
 						text = 'Please hand off to {1} ( @{0} ) '.format(members[chosen]['mention_name'], members[chosen]['name'].split()[0])
 						print text
