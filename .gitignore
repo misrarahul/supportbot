@@ -1,4 +1,5 @@
 config.json
+*.swp
 handoff.py
 hipster/
 reviewbot.py
