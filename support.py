@@ -45,7 +45,7 @@ def choose_member(remaining, members, member_ids):
 
 
 if __name__ == "__main__":
-	debug = True 
+	debug = False 
 
 	try:
 		with open('config.json') as config_file:
