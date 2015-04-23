@@ -83,6 +83,7 @@ if __name__ == "__main__":
 	remaining = []
    
 	while not stopped:
+        print "Support Bot Started"
 	    try:
 	        messages = hipchat.get_messages(room_id=room_id, date='recent')
 	        for message in messages['data']['messages']:
@@ -91,6 +92,8 @@ if __name__ == "__main__":
 	                if "handoff" in message_text and "mixpanel.com/admin/internal/users/breakdown" in message_text:
 						chosen, members = choose_member(remaining,members, member_ids)
 						text = 'Please hand off to {1} ( @{0} ) '.format(members[chosen]['mention_name'], members[chosen]['name'].split()[0])
+                        print message_text
+                        print text
 						send_message(text)
 
 	        last_date = message['date']
