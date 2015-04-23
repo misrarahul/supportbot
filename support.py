@@ -23,7 +23,7 @@ def get_member_list(member_ids):
 	while not loaded_users:
 	    response = hipchat.get_users_list()
 	    if response['status'] != 200:
-	        sleep(10)
+	        sleep(15)
 	        continue
 	    loaded_users = True
 	    users = response['data']['users']
@@ -99,4 +99,4 @@ if __name__ == "__main__":
 	        if 'messages' in locals():
 	            print messages
 	        print traceback.format_exc()
-	    sleep(10)
+	    sleep(20)
