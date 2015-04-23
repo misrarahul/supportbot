@@ -31,8 +31,7 @@ def get_member_list(member_ids):
 	member_info = {}
 	for user in users:
 	    user_id = user['user_id']
-	    if user_id in member_ids:
-	        member_info[user_id] = user
+	    member_info[user_id] = user
 	return member_info
 
 def choose_member(remaining, members, member_ids):
@@ -58,9 +57,11 @@ if __name__ == "__main__":
 	last_date = None
 
 	if debug == True:
-		room_id = 1447044
+		room_id = 1447044 # send to the BotTest room
+		at = "" # remove mention from the message
 	else:
 		room_id = config['room_id']
+		at = "@"
 
 	member_ids = set([
 	    702888, # Alex Bensick
@@ -91,7 +92,10 @@ if __name__ == "__main__":
 	                message_text = message['message'].lower()
 	                if "handoff" in message_text and re.match(r"[^@]+@[^@]+\.[^@]+", message_text):
 						chosen, members = choose_member(remaining,members, member_ids)
-						text = 'Please hand off to {1} ( @{0} ) '.format(members[chosen]['mention_name'], members[chosen]['name'].split()[0])
+						sender_name = json.dumps(message['from']['name'])
+						sender_mention_name = members[message['from']['user_id']]['mention_name']
+						text = '{at}{0} Please hand off to {1} ( {at}{2} ) '.format(sender_mention_name , members[chosen]['name'].split()[0], members[chosen]['mention_name'], at=at)
+						print "{0}: {1}".format(sender_name, message_text)
 						print text
 						send_message(text)
 
