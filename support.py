@@ -8,6 +8,7 @@ import json
 import signal
 import traceback
 import re
+import datetime
 
 stopped = False
 def terminate(signum, frame):
@@ -27,10 +28,14 @@ def get_member_list():
     try:
         with open('member_info.json') as f:
             member_info = json.load(f)
+        print "open file"
     except:
-        member_info = None
-    # Get new userlist if one does not exist or if it is the first of the month
-    if not member_info: # or datetime.date.today().day == 1: # UNDO WHEN DONE
+        member_info = {}
+        print "doesn"
+
+    today = datetime.datetime.today().date().isoformat()
+   	# Get new userlist if one does not exist or if it is the first run of the day
+    if member_info.get('last_date') != today:
         loaded_users = False
         while not loaded_users:
             response = hipchat.get_users_list()
@@ -39,15 +44,17 @@ def get_member_list():
                 continue
             loaded_users = True
             users = response['data']['users']
-        member_info = {}
+        member_info = {'last_date':datetime.datetime.today().date().isoformat()}
         for user in users:
             user_id = user['user_id']
             member_info[user_id] = user
-        return member_info
 
+    print "before write"
     with open('member_info.json', 'w') as f:
         json.dump(member_info, f)
-    
+        print "writes"
+    print "after write"
+
     return member_info
 
 def choose_member():
@@ -86,18 +93,17 @@ def choose_member():
     with open('handoff_list.json', 'w') as f:
         json.dump(handoff_list, f)
 
-    return picked
+    return str(picked)
 
 
 if __name__ == "__main__":
-
-    debug = True 
 
     try:
         with open('config.json') as config_file:
             config = json.load(config_file)
             api_key = config['api_key']
             room_id = config['room_id']
+            debug = config.get('debug')
     except Exception:
         sys.exit('Unable to load config file')
 
@@ -105,7 +111,7 @@ if __name__ == "__main__":
     bot_name = 'Support Bot'
     last_date = None
 
-    if debug == True:
+    if debug:
         room_id = 1447044 # send to the BotTest room
         at = "" # remove mention from the message
     else:
@@ -122,7 +128,8 @@ if __name__ == "__main__":
                     if "handoff" in message_text and re.match(r"[^@]+@[^@]+\.[^@]+", message_text):
                         chosen, members = choose_member(), get_member_list()
                         sender_name = json.dumps(message['from']['name'])
-                        sender_mention_name = members[message['from']['user_id']]['mention_name']
+                        sender_id = str(message['from']['user_id'])
+                        sender_mention_name = members[sender_id]['mention_name']
                         text = '{at}{0} Please hand off to {1} ( {at}{2} ) '.format(sender_mention_name , members[chosen]['name'].split()[0], members[chosen]['mention_name'], at=at)
                         print "{0}: {1}".format(sender_name, message_text)
                         print text
@@ -134,7 +141,7 @@ if __name__ == "__main__":
                 print messages
             print traceback.format_exc()
 
-        if first_time == True:
+        if first_time:
             send_message('My hand off funcionality is activate!')
             first_time = False
 
