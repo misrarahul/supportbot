@@ -1,3 +1,5 @@
+.DS_Store
+handoff_list.json
 config.json
 *.swp
 handoff.py
