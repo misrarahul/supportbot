@@ -130,7 +130,7 @@ if __name__ == "__main__":
                         sender_name = json.dumps(message['from']['name'])
                         sender_id = str(message['from']['user_id'])
                         sender_mention_name = members[sender_id]['mention_name']
-                        text = '{at}{0} Please send an email to support@mixpanel.com with a harm hand off to {1} ( {at}{2} ). You can expect a reply between 9:00AM - 6:00PM'.format(sender_mention_name , members[chosen]['name'].split()[0], members[chosen]['mention_name'], at=at)
+                        text = '{at}{0} Please send an email to support@mixpanel.com with a warm hand off to {1} ( {at}{2} ). You can expect a reply between 9:00AM - 6:00PM'.format(sender_mention_name , members[chosen]['name'].split()[0], members[chosen]['mention_name'], at=at)
                         print "{0}: {1}".format(sender_name, message_text)
                         print text
                         send_message(text)
