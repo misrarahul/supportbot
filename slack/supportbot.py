@@ -9,8 +9,6 @@ import sys
 from slackclient import SlackClient
 from time import sleep
 
-
-
 class SupportBot(object):
     def __init__(self, room, token, debug=False):
         self.stopped = False
@@ -22,7 +20,6 @@ class SupportBot(object):
         else:
             self.room = room
             self.at = "@"
-
 
     def terminate(self, signum, frame):
         self.stopped = True
@@ -67,14 +64,13 @@ class SupportBot(object):
 
         with open('handoff_list.json', 'w') as f:
             json.dump(handoff_list, f)
-
+            
         return picked
 
     def status_check(self, data):
         message = data['text'].lower()
         if message == "support_bot status":
             self.send_message('I am active! :blessed:')
-
 
     def handoff_check(self, data):
         message = data['text'].lower()
@@ -87,12 +83,10 @@ class SupportBot(object):
         '''
         Organizes all message checks
         '''
-
         checklist = [
             'status_check',
             'handoff_check'
         ]
-
         for check in checklist:
             getattr(self, check)(data)
 
