@@ -74,8 +74,8 @@ class SupportBot(object):
 
     def handoff_check(self, data):
         message = data['text'].lower()
-        sender = data['user']
         if "handoff" in message and re.match(r"[^@]+@[^@]+\.[^@]+", message):
+            sender = data.get('user','No One')
             text = '<{at}{0}> Please send an email to support@mixpanel.com with a warm hand off to <{at}{1}>.'.format(sender, self.choose_member(), at=self.at)
             self.send_message(text)
 
