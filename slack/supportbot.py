@@ -53,7 +53,6 @@ class SupportBot(object):
                 'U04URV3TH', # Arthur Cilley
                 'U04U6FDR7', # Rahul Misra
                 'U04TJNQJ8', # Ryan Seams
-                'U04U7TWKB', # Shriya Ravishankar
                 'U04U6EQ5F', # Hilary Stone
                 'U04TK5XQG', # Christine Kim
                 'U04U76VMM', # Marina Milenkovic
