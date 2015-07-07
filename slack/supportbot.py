@@ -103,8 +103,8 @@ class SupportBot(object):
 
     def alias_check(self, data):
         message = data['text'].lower()
-        if "@supporty" in message:
-            sender, message = data.get('user', ''), data.get('text').replace('@supporty ','')
+        if "@support" in message:
+            sender, message = data.get('user', ''), data.get('text').replace('@support ','')
             teammention = ' '.join(['<{at}{0}>'.format(member, at=self.at) for member in self.support_org])
             text = 'from <{at}{0}>: "{message}"\n{teammention}'.format(sender, message=message, teammention=teammention, at=self.at)
             self.send_message(text)
