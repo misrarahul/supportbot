@@ -22,7 +22,6 @@ class SupportBot(object):
         else:
             self.room = room
             self.at = "@"
-        self.at = "@"
         self.support_members = [
             'U03QDP6J9', # Alex Bensick
             'U03QUCH68', # Robert Ott
@@ -104,7 +103,7 @@ class SupportBot(object):
     def alias_check(self, data):
         message = data['text'].lower()
         if "@support" in message:
-            sender, message = data.get('user', ''), data.get('text').replace('@support ','')
+            sender, message = data.get('user', ''), data.get('text').replace('@support ','', 1).encode('ascii', 'ignore')
             teammention = ' '.join(['<{at}{0}>'.format(member, at=self.at) for member in self.support_org])
             text = 'from <{at}{0}>: "{message}"\n{teammention}'.format(sender, message=message, teammention=teammention, at=self.at)
             self.send_message(text)
@@ -129,7 +128,7 @@ class SupportBot(object):
             self.new_session = False
         if not self.stopped:
             for data in self.slack.rtm_read():
-                if all (k in data for k in ('type', 'text')) and data['type'] == 'message' and data['text']:
+                if all (k in data for k in ('type', 'text')) and data['type'] == 'message' and data['text'] and data['user'] != 'U055URFUX':
                     self.review_message(data)
         else:
             raise Exception("connection failed")
