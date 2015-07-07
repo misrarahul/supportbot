@@ -21,17 +21,53 @@ class SupportBot(object):
             self.room = room
             self.at = "@"
 
+        self.support_members = [
+            'U03QDP6J9', # Alex Bensick
+            'U03QUCH68', # Robert Ott
+            'U04TJP6TQ', # Marco Junco
+            'U03DS1TF1', # Diggory Rycroft
+            'U04U808CF', # Jordan Nunez
+            'U04U6E9V3', # Karl Moll
+            'U0517AJF0', # Cassie Gamm
+            'U04TJQBP6', # Maddie Busacca
+            'U04URV3TH', # Arthur Cilley
+            'U04U6FDR7', # Rahul Misra
+            'U04TJNQJ8', # Ryan Seams
+            'U04U6EQ5F', # Hilary Stone
+            'U04TK5XQG', # Christine Kim
+            'U04U76VMM', # Marina Milenkovic
+            'U063DLPTL', # Eric Hwang
+        ]
+
+        self.support_emea = [
+            'U04TK07TN', # Jared McFarland
+            'U052AKX8X', # Argenis Ferrer
+        ]
+
+        self.support_uppers = [
+            'U03QH6WN0', # Dan Lee
+            'U0503HD9H', # Marshall Luis Reaves
+            'U04U6L0BH', # Drew Ritter
+        ]
+
+        self.support_org = self.support_members+self.support_uppers+self.support_emea
+
     def terminate(self, signum, frame):
         self.stopped = True
 
     def send_message(self,text):
         self.slack.rtm_send_message(self.room, text)
 
-    def get_userlist(self):
+    def get_userlist(self, printout=False):
         url = "https://slack.com/api/users.list?token={}".format(self.token)
         data = requests.get(url)
         userlist = json.loads(data.text)['members']
-        return userlist
+        if printout:
+            for user in userlist:
+                if user['profile']:
+                    print user['profile'].get('real_name'), user['profile'].get('email'), user['id']
+        else:
+            return userlist
 
     def choose_member(self):
         try:
@@ -41,29 +77,14 @@ class SupportBot(object):
             handoff_list = []
 
         if not handoff_list:
-            handoff_list = [
-                'U03QDP6J9', # Alex Bensick
-                'U03QUCH68', # Robert Ott
-                'U04TJP6TQ', # Marco Junco
-                'U03DS1TF1', # Diggory Rycroft
-                'U04U808CF', # Jordan Nunez
-                'U04U6E9V3', # Karl Moll
-                'U0517AJF0', # Cassie Gamm
-                'U04TJQBP6', # Maddie Busacca
-                'U04URV3TH', # Arthur Cilley
-                'U04U6FDR7', # Rahul Misra
-                'U04TJNQJ8', # Ryan Seams
-                'U04U6EQ5F', # Hilary Stone
-                'U04TK5XQG', # Christine Kim
-                'U04U76VMM', # Marina Milenkovic
-            ]   
+            handoff_list = self.support_members
 
         picked = random.choice(handoff_list)
         handoff_list.remove(picked)
 
         with open('handoff_list.json', 'w') as f:
             json.dump(handoff_list, f)
-            
+
         return picked
 
     def status_check(self, data):
@@ -78,13 +99,22 @@ class SupportBot(object):
             text = '<{at}{0}> Please send an email to support@mixpanel.com with a warm hand off to <{at}{1}>.'.format(sender, self.choose_member(), at=self.at)
             self.send_message(text)
 
+    def alias_check(self, data):
+        message = data['text'].lower()
+        if "@supporty" in message:
+            sender, message = data.get('user', ''), data.get('text').replace('@supporty ','')
+            teammention = ' '.join(['<{at}{0}>'.format(member, at=self.at) for member in self.support_org])
+            text = 'from <{at}{0}>: "{message}"\n{teammention}'.format(sender, message=message, teammention=teammention, at=self.at)
+            self.send_message(text)
+
     def review_message(self, data):
         '''
         Organizes all message checks
         '''
         checklist = [
             'status_check',
-            'handoff_check'
+            'handoff_check',
+            'alias_check'
         ]
         for check in checklist:
             getattr(self, check)(data)
