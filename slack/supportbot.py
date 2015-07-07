@@ -12,15 +12,17 @@ from time import sleep
 class SupportBot(object):
     def __init__(self, room, token, debug=False):
         self.stopped = False
+        self.new_session = True
         self.token = token
         self.slack = SlackClient(token)
+        self.connected = self.slack.rtm_connect()
         if debug:
             self.at = "" # remove mention from the message
             self.room = 'bot-cantina'
         else:
             self.room = room
             self.at = "@"
-
+        self.at = "@"
         self.support_members = [
             'U03QDP6J9', # Alex Bensick
             'U03QUCH68', # Robert Ott
@@ -122,14 +124,13 @@ class SupportBot(object):
     def run(self):
         signal.signal(signal.SIGTERM, self.terminate)
         signal.signal(signal.SIGINT, self.terminate)
-
-        if self.slack.rtm_connect():
+        if self.new_session:
             print "bot activated in {}".format(self.room)
-            while not self.stopped:
-                for data in self.slack.rtm_read():
-                    if all (k in data for k in ('type', 'text')) and data['type'] == 'message' and data['text']:
-                        self.review_message(data)
-                sleep(5)
+            self.new_session = False
+        if not self.stopped:
+            for data in self.slack.rtm_read():
+                if all (k in data for k in ('type', 'text')) and data['type'] == 'message' and data['text']:
+                    self.review_message(data)
         else:
             raise Exception("connection failed")
 
@@ -144,4 +145,6 @@ if __name__ == "__main__":
         sys.exit('Unable to load config file')
 
     bot = SupportBot(room, token, debug)
-    bot.run()
+    while not bot.stopped:
+        bot.run()
+        sleep(5)
