@@ -128,7 +128,7 @@ class SupportBot(object):
             self.new_session = False
         if not self.stopped:
             for data in self.slack.rtm_read():
-                if all (k in data for k in ('type', 'text')) and data['type'] == 'message' and data['text'] and data['user'] != 'U055URFUX':
+                if all (k in data for k in ('type', 'text', 'user')) and data['type'] == 'message' and data['text'] and data['user'] != 'U055URFUX':
                     self.review_message(data)
         else:
             raise Exception("connection failed")
