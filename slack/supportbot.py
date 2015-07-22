@@ -38,6 +38,7 @@ class SupportBot(object):
             'U04TK5XQG', # Christine Kim
             'U04U76VMM', # Marina Milenkovic
             'U063DLPTL', # Eric Hwang
+            'U079WJZU1', # Joey Malysz
         ]
 
         self.support_emea = [
