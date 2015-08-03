@@ -24,7 +24,6 @@ class SupportBot(object):
             self.at = "@"
 
         self.support_members = [
-            'U03QDP6J9', # Alex Bensick
             'U03QUCH68', # Robert Ott
             'U04TJP6TQ', # Marco Junco
             'U03DS1TF1', # Diggory Rycroft
