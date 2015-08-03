@@ -22,6 +22,7 @@ class SupportBot(object):
         else:
             self.room = room
             self.at = "@"
+
         self.support_members = [
             'U03QDP6J9', # Alex Bensick
             'U03QUCH68', # Robert Ott
@@ -41,6 +42,12 @@ class SupportBot(object):
             'U079WJZU1', # Joey Malysz
         ]
 
+        self.support_newbies = [
+            'U08H348VB', # Brandon Skerda
+            'U086EBLBE', # Will Ginsberg
+            'U08HC66KT', # Marissa Kuhrau
+        ]
+
         self.support_emea = [
             'U04TK07TN', # Jared McFarland
             'U052AKX8X', # Argenis Ferrer
@@ -52,7 +59,7 @@ class SupportBot(object):
             'U04U6L0BH', # Drew Ritter
         ]
 
-        self.support_org = self.support_members+self.support_uppers+self.support_emea
+        self.support_org = self.support_members+self.support_uppers+self.support_emea+self.support_newbies
 
     def terminate(self, signum, frame):
         self.stopped = True
