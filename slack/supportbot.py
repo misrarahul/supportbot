@@ -1,13 +1,15 @@
 #/usr/bin/env python
 
-import signal
-import requests
+from goolander import Goolander
 import json
-import re
 import random
-import sys
+import re
+import requests
 from slackclient import SlackClient
+import signal
+import sys
 from time import sleep
+
 
 try:
     with open('config.json') as config_file:
@@ -20,6 +22,7 @@ except Exception:
 
 new_session = True
 slack = SlackClient(token)
+service = Goolander('privatekey.pem', account_email, 'mp.se.scheduler@gmail.com')
 
 stopped = False
 def terminate(signum, frame):
