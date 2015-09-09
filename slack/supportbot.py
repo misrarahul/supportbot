@@ -38,42 +38,47 @@ if debug:
 else:
     at = "@"
 
-support_members = [
-    'U03QUCH68', # Robert Ott
-    'U04TJP6TQ', # Marco Junco
-    'U03DS1TF1', # Diggory Rycroft
-    'U04U808CF', # Jordan Nunez
-    'U04U6E9V3', # Karl Moll
-    'U0517AJF0', # Cassie Gamm
-    'U04TJQBP6', # Maddie Busacca
-    'U04URV3TH', # Arthur Cilley
-    'U04U6FDR7', # Rahul Misra
-    'U04TJNQJ8', # Ryan Seams
-    'U04U6EQ5F', # Hilary Stone
-    'U04TK5XQG', # Christine Kim
-    'U04U76VMM', # Marina Milenkovic
-    'U063DLPTL', # Eric Hwang
-    'U079WJZU1', # Joey Malysz
-    'U08H348VB', # Brandon Skerda
-    'U086EBLBE', # Will Ginsberg
-    'U08HC66KT', # Marissa Kuhrau
-]
+sf_team_map = {
+    'robert@mixpanel.com': 'U03QUCH68', # Robert Ott
+    'marco@mixpanel.com': 'U04TJP6TQ', # Marco Junco
+    'diggory@mixpanel.com': 'U03DS1TF1', # Diggory Rycroft
+    'jordan@mixpanel.com': 'U04U808CF', # Jordan Nunez
+    'karl@mixpanel.com': 'U04U6E9V3', # Karl Moll
+    'cassie@mixpanel.com': 'U0517AJF0', # Cassie Gamm
+    'maddy@mixpanel.com': 'U04TJQBP6', # Maddie Busacca
+    'ryan.seams@mixpanel.com': 'U04URV3TH', # Arthur Cilley
+    'rahul@mixpanel.com': 'U04U6FDR7', # Rahul Misra
+    'arthur@mixpanel.com': 'U04TJNQJ8', # Ryan Seams
+    'hilary@mixpanel.com': 'U04U6EQ5F', # Hilary Stone
+    'christine.kim@mixpanel.com': 'U04TK5XQG', # Christine Kim
+    'marina.milenkovic@mixpanel.com': 'U04U76VMM', # Marina Milenkovic
+    'eric.hwang@mixpanel.com': 'U063DLPTL', # Eric Hwang
+    'joe.malysz@mixpanel.com': 'U079WJZU1', # Joey Malysz
+    'brandon.skerda@mixpanel.com': 'U08H348VB', # Brandon Skerda
+    'will.ginsberg@mixpanel.com': 'U086EBLBE', # Will Ginsberg
+    'marissa.kuhrau@mixpanel.com': 'U08HC66KT', # Marissa Kuhrau
+}
+sf_team = sf_team_map.values()
 
-support_newbies = [
-]
+sf_newbies_map = {
+}
+sf_newbies = sf_newbies_map.values()
 
-support_emea = [
-    'U04TK07TN', # Jared McFarland
-    'U052AKX8X', # Argenis Ferrer
-]
+emea_map = {
+    'jared@mixpanel.com': 'U04TK07TN', # Jared McFarland
+    'argenis.ferrer@mixpanel.com': 'U052AKX8X', # Argenis Ferrer
+}
+emea = emea_map.values()
 
-support_uppers = [
-    'U03QH6WN0', # Dan Lee
-    'U0503HD9H', # Marshall Luis Reaves
-    'U04U6L0BH', # Drew Ritter
-]
+uppers_map = {
+    'daniel@mixpanel.com': 'U03QH6WN0', # Dan Lee
+    'marshall@mixpanel.com': 'U0503HD9H', # Marshall Luis Reaves
+    'drew@mixpanel.com': 'U04U6L0BH', # Drew Ritter
+}
+uppers = uppers_map.values()
 
-support_org = support_members+support_uppers+support_emea+support_newbies
+
+support_org = sf_team + uppers + emea + sf_newbies
 
 def terminate(signum, frame):
     stopped = True
@@ -81,8 +86,12 @@ def terminate(signum, frame):
 def send_message(text):
     slack.rtm_send_message(room, text)
 
-def get_userlist(printout=False):
-    url = "https://slack.com/api/users.list?token={}".format(token)
+def _get_user_email(user, printout=False):
+    url = "https://slack.com/api/users.info?token=" % token
+    return json.loads(requests.get(url)).get
+
+def _get_userlist(user, printout=False):
+    url = "https://slack.com/api/users.list?token=" % token
     data = requests.get(url)
     userlist = json.loads(data.text)['members']
     if printout:
@@ -100,9 +109,13 @@ def _choose_member():
         handoff_list = []
 
     if not handoff_list:
-        handoff_list = support_members
+        handoff_list = sf_team
     picked = random.choice(handoff_list)
     handoff_list.remove(picked)
+    while picked in _vacationers():
+        picked = random.choice(handoff_list)
+        handoff_list.remove(picked)
+
     with open('handoff_list.json', 'w') as f:
         json.dump(handoff_list, f)
 
@@ -116,11 +129,11 @@ def status_check(data):
 def _vacationers():
     with Goolander('privatekey.pem', account_email, 'mp.se.scheduler@gmail.com') as service:
         today = date.today().isoformat()
-        vacation_list = []
+        vacation_list = set()
         for event in service.getEventsByDate(today+'T00:00:00-08:00', today+'T23:59:00-08:00'):
             if 'mixpanel' in event['creator']['email']:
-                vacation_list.append(event['creator']['email'])
-    return vacation_list
+                vacation_list.add(sf_team_map.get(event['creator']['email']))
+    return list(vacation_list)
 
 def handoff_check(data):
     message = data['text'].lower()
@@ -143,15 +156,14 @@ def review_message(data):
     alias_check(data)
 
 if __name__ == "__main__":
-    # if slack.rtm_connect():
-    #     while not stopped:
-    #         if new_session:
-    #             print "bot activated in {}".format(room)
-    #             new_session = False
-    #         for data in slack.rtm_read():
-    #             if all (k in data for k in ('type', 'text', 'user')) and data['type'] == 'message' and data['text'] and data['user'] != 'U055URFUX':
-    #                 review_message(data)
-    #         sleep(5)
-    # else:
-    #     raise Exception("connection failed")
-    print _vacationers()
+    if slack.rtm_connect():
+        while not stopped:
+            if new_session:
+                print "bot activated in {}".format(room)
+                new_session = False
+            for data in slack.rtm_read():
+                if all (k in data for k in ('type', 'text', 'user')) and data['type'] == 'message' and data['text'] and data['user'] != 'U055URFUX':
+                    review_message(data)
+            sleep(5)
+    else:
+        raise Exception("connection failed")
