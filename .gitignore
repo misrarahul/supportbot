@@ -1,4 +1,5 @@
 privatekey.pem
+*.pyc
 member_info.json
 .DS_Store
 handoff_list.json

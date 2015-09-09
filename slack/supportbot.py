@@ -1,5 +1,6 @@
 #/usr/bin/env python
 
+from datetime import date
 from goolander import Goolander
 import json
 import random
@@ -17,12 +18,12 @@ try:
         token = config['token']
         room = config['room']
         debug = config.get('debug', False)
+        account_email = config['account_email']
 except Exception:
     sys.exit('Unable to load config file')
 
 new_session = True
 slack = SlackClient(token)
-service = Goolander('privatekey.pem', account_email, 'mp.se.scheduler@gmail.com')
 
 stopped = False
 def terminate(signum, frame):
@@ -91,7 +92,7 @@ def get_userlist(printout=False):
     else:
         return userlist
 
-def choose_member():
+def _choose_member():
     try:
         with open('handoff_list.json') as f:
             handoff_list = json.load(f)
@@ -112,11 +113,20 @@ def status_check(data):
     if message == "support_bot status":
         send_message('I am active! :blessed:')
 
+def _vacationers():
+    with Goolander('privatekey.pem', account_email, 'mp.se.scheduler@gmail.com') as service:
+        today = date.today().isoformat()
+        vacation_list = []
+        for event in service.getEventsByDate(today+'T00:00:00-08:00', today+'T23:59:00-08:00'):
+            if 'mixpanel' in event['creator']['email']:
+                vacation_list.append(event['creator']['email'])
+    return vacation_list
+
 def handoff_check(data):
     message = data['text'].lower()
     if "handoff" in message and re.match(r"[^@]+@[^@]+\.[^@]+", message):
         sender = data.get('user','No One')
-        text = '<{at}{0}> Please send an email to support@mixpanel.com with a warm hand off to <{at}{1}>.'.format(sender, choose_member(), at=at)
+        text = '<{at}{0}> Please send an email to support@mixpanel.com with a warm hand off to <{at}{1}>.'.format(sender, _choose_member(), at=at)
         send_message(text)
 
 def alias_check(data):
@@ -133,14 +143,15 @@ def review_message(data):
     alias_check(data)
 
 if __name__ == "__main__":
-    if slack.rtm_connect():
-        while not stopped:
-            if new_session:
-                print "bot activated in {}".format(room)
-                new_session = False
-            for data in slack.rtm_read():
-                if all (k in data for k in ('type', 'text', 'user')) and data['type'] == 'message' and data['text'] and data['user'] != 'U055URFUX':
-                    review_message(data)
-            sleep(5)
-    else:
-        raise Exception("connection failed")
+    # if slack.rtm_connect():
+    #     while not stopped:
+    #         if new_session:
+    #             print "bot activated in {}".format(room)
+    #             new_session = False
+    #         for data in slack.rtm_read():
+    #             if all (k in data for k in ('type', 'text', 'user')) and data['type'] == 'message' and data['text'] and data['user'] != 'U055URFUX':
+    #                 review_message(data)
+    #         sleep(5)
+    # else:
+    #     raise Exception("connection failed")
+    print _vacationers()

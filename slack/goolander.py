@@ -4,14 +4,14 @@ from oauth2client.client import SignedJwtAssertionCredentials
 
 class Goolander(object):
     def __init__(self, privatekey, account_email, calendarId):
-
+        # Additional Varaibles
+        self.calendarId = calendarId
         # Establish resources for credentials
-
         with open(privatekey, 'rb') as f:
-            key = f.read()    
+            key = f.read()
 
         credentials = SignedJwtAssertionCredentials(
-            account_email, 
+            account_email,
             key,
             scope=[
                 'https://www.googleapis.com/auth/calendar',
@@ -21,12 +21,13 @@ class Goolander(object):
         http = credentials.authorize(httplib2.Http())
 
         # Build service from credentials
-
         self.service = build(serviceName='calendar', version='v3', http=http)
 
-        # Additional Varaibles
+    def __enter__(self):
+        return self
 
-        self.calendarId = calendarId
+    def __exit__(self, type, value, traceback):
+        return False
 
     def createEvent(self, body):
         self.service.events().insert(calendarId=self.calendarId, body=body, sendNotifications=True).execute()
