@@ -158,11 +158,16 @@ def alias_check(data):
         text = 'from <{at}{0}>: "{message}"\n{teammention}'.format(sender, message=message, teammention=teammention, at=at)
         send_message(text)
 
+IMPACTFUL_DEPLOY = {'waiting':False}
 def deploy_check(data):
-    if ('sabrina' in data['text']):
-        print data
-    if (data.get('username') == 'deploy') and ('sabrina' in data['text']):
-        send_message('<!channel>: ' + data['text'].replace(' @sabrina @aliisa @Misha @will', ''))
+    if data.get('username') == 'deploy':
+        message = data['attachments']['text']
+        if 'sabrina' in message:
+            send_message('<!channel>: ' + message.replace(' @sabrina @aliisa @Misha @will', ''))
+            IMPACTFUL_DEPLOY['waiting'] = True
+        elif ('deploying' in message) and IMPACTFUL_DEPLOY['waiting']:
+            send_message(message)
+            IMPACTFUL_DEPLOY['waiting'] = False
 
 def review_message(data):
     if data.get('channel') == active_room_id:
