@@ -25,6 +25,10 @@ except Exception:
 new_session = True
 slack = SlackClient(token)
 
+support_room = "C03QFM9BL"
+mixpanel_room = "C024QH392"
+bot_cantina_room = "C04U9BCCZ"
+
 stopped = False
 def terminate(signum, frame):
     global stopped
@@ -35,8 +39,10 @@ signal.signal(signal.SIGINT, terminate)
 if debug:
     at = "" # remove mention from the message
     room = 'bot-cantina'
+    active_room_id = bot_cantina_room
 else:
     at = "@"
+    active_room_id = support_room
 
 sf_team_map = {
     'robert@mixpanel.com': 'U03QUCH68', # Robert Ott
@@ -151,15 +157,16 @@ def alias_check(data):
         send_message(text)
 
 def review_message(data):
-    status_check(data)
-    handoff_check(data)
-    alias_check(data)
+    if data.get('channel') == active_room_id:
+        status_check(data)
+        handoff_check(data)
+        alias_check(data)
 
 if __name__ == "__main__":
     if slack.rtm_connect():
         while not stopped:
             if new_session:
-                print "bot activated in {}".format(room)
+                print "sending responses to {}".format(room)
                 new_session = False
             for data in slack.rtm_read():
                 if all (k in data for k in ('type', 'text', 'user')) and data['type'] == 'message' and data['text'] and data['user'] != 'U055URFUX':
