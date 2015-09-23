@@ -158,11 +158,17 @@ def alias_check(data):
         text = 'from <{at}{0}>: "{message}"\n{teammention}'.format(sender, message=message, teammention=teammention, at=at)
         send_message(text)
 
+def deploy_check(data):
+    if (data.get('username') == 'deploy') and ('sabrina' in data['text']):
+        send_message('<!channel>: ' + data['text'].replace(' @sabrina @aliisa @Misha @will', ''))
+
 def review_message(data):
     if data.get('channel') == active_room_id:
         status_check(data)
         handoff_check(data)
         alias_check(data)
+    elif data.get('channel') == mixpanel_room:
+        deploy_check(data)
 
 if __name__ == "__main__":
     if slack.rtm_connect():
