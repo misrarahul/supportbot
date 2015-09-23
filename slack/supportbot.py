@@ -119,6 +119,8 @@ def _choose_member():
     picked = random.choice(handoff_list)
     handoff_list.remove(picked)
     while picked in _vacationers():
+        if not handoff_list:
+            handoff_list = sf_team
         picked = random.choice(handoff_list)
         handoff_list.remove(picked)
 
