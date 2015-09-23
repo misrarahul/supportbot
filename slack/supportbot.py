@@ -159,6 +159,8 @@ def alias_check(data):
         send_message(text)
 
 def deploy_check(data):
+    if ('sabrina' in data['text']):
+        print data
     if (data.get('username') == 'deploy') and ('sabrina' in data['text']):
         send_message('<!channel>: ' + data['text'].replace(' @sabrina @aliisa @Misha @will', ''))
 
@@ -177,7 +179,7 @@ if __name__ == "__main__":
                 print "sending responses to {}".format(room)
                 new_session = False
             for data in slack.rtm_read():
-                if all (k in data for k in ('type', 'text', 'user')) and data['type'] == 'message' and data['text'] and data['user'] != 'U055URFUX':
+                if all (k in data for k in ('type', 'text', 'user')) and data['type'] == 'message' and data['text'] and data['user'] != 'U0B6XV760':
                     review_message(data)
             sleep(5)
     else:
