@@ -180,6 +180,7 @@ def review_message(data):
 if __name__ == "__main__":
     if slack.rtm_connect():
         while not stopped:
+            slack.server.ping()
             if new_session:
                 print "sending responses to {}".format(room)
                 new_session = False
