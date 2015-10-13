@@ -47,7 +47,6 @@ else:
 sf_team_map = {
     'robert@mixpanel.com': 'U03QUCH68', # Robert Ott
     'marco@mixpanel.com': 'U04TJP6TQ', # Marco Junco
-    'diggory@mixpanel.com': 'U03DS1TF1', # Diggory Rycroft
     'jordan@mixpanel.com': 'U04U808CF', # Jordan Nunez
     'karl@mixpanel.com': 'U04U6E9V3', # Karl Moll
     'cassie@mixpanel.com': 'U0517AJF0', # Cassie Gamm
