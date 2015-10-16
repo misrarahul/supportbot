@@ -1,5 +1,5 @@
 #/usr/bin/env python
-
+import atexit
 from datetime import date
 from goolander import Goolander
 import json
@@ -33,11 +33,28 @@ BOT_ID = 'U0B6XV760'
 BOT_MENTION = '<@' + BOT_ID + '>'
 
 stopped = False
+
+# Store subscribed deploys in memory, updated before closing in terminate
+_deploy_file = 'deploy_subscribe.json'
+try:
+    with open(_deploy_file) as f:
+        subsribed_deploys = json.load(f)
+except:
+    subsribed_deploys = []
+
+def _closing_options():
+    print '\n bye'
+    with open(_deploy_file, 'w') as f:
+        json.dump(subsribed_deploys, f)
+
 def terminate(signum, frame):
+    _closing_options()
     global stopped
     stopped = True
 signal.signal(signal.SIGTERM, terminate)
 signal.signal(signal.SIGINT, terminate)
+
+atexit.register(_closing_options)
 
 if debug:
     at = "" # remove mention from the message
@@ -140,20 +157,23 @@ def _choose_member():
 
     return picked
 
+def _sanitize(text):
+    return text.replace(u'\u201c', '"').lower()
+
 def status_check(data):
     message = data['text']
-    if BOT_MENTION in message and 'status' in message.lower():
+    if BOT_MENTION in message and 'status' in _sanitize(message):
         send_message('I am active! :blessed:')
 
 def handoff_check(data):
-    message = data['text'].lower()
+    message = _sanitize(data['text'])
     if "handoff" in message and re.match(r"[^@]+@[^@]+\.[^@]+", message):
         sender = data.get('user','No One')
         text = '<{at}{0}> Please send an email to support@mixpanel.com with a warm hand off to <{at}{1}>.'.format(sender, _choose_member(), at=at)
         send_message(text)
 
 def alias_check(data):
-    message = data['text'].lower()
+    message = _sanitize(data['text'])
     if "@support" in message:
         sender, message = data.get('user', ''), data.get('text').replace('@support ','', 1).encode('ascii', 'ignore')
         teammention = ' '.join(['<{at}{0}>'.format(member, at=at) for member in support_org])
@@ -161,8 +181,22 @@ def alias_check(data):
         send_message(text)
 
 def deploy_subscribe(data):
-    message = data['text'].lower()
-    # if ""
+    message = _sanitize(data['text'])
+    if all (k in message for k in (BOT_MENTION.lower(), 'deploy subscribe')):
+        if 'list' in message:
+            out = ""
+            for i, item in enumerate(subsribed_deploys):
+                out += "%d: %s \n" % (i+1, item)
+            send_message(out)
+        elif 'add' in message:
+            subsribed_deploys.extend(re.findall('"([^"]*)"', message))
+            send_message('deploy subscription added')
+        elif 'remove' in message:
+            try:
+                del subsribed_deploys[int(message.split('remove')[-1])-1]
+                send_message('deploy subscription removed')
+            except:
+                send_message('invalid input')
 
 IMPACTFUL_DEPLOY = {'waiting': False}
 def deploy_check(data):
@@ -181,7 +215,6 @@ def review_message(data):
         handoff_check(data)
         alias_check(data)
         deploy_subscribe(data)
-        print data
     elif data.get('channel') == MIXPANEL_ROOM:
         deploy_check(data)
 
