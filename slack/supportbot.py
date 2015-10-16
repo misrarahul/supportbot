@@ -106,6 +106,15 @@ def _get_userlist(user, printout=False):
     else:
         return userlist
 
+def _vacationers():
+    with Goolander('privatekey.pem', account_email, 'mp.se.scheduler@gmail.com') as service:
+        today = date.today().isoformat()
+        vacation_list = set()
+        for event in service.getEventsByDate(today+'T00:00:00-08:00', today+'T23:59:00-08:00'):
+            if 'mixpanel' in event['creator']['email']:
+                vacation_list.add(sf_team_map.get(event['creator']['email']))
+    return list(vacation_list)
+
 def _choose_member():
     try:
         with open('handoff_list.json') as f:
@@ -133,15 +142,6 @@ def status_check(data):
     if message == "support_bot status":
         send_message('I am active! :blessed:')
 
-def _vacationers():
-    with Goolander('privatekey.pem', account_email, 'mp.se.scheduler@gmail.com') as service:
-        today = date.today().isoformat()
-        vacation_list = set()
-        for event in service.getEventsByDate(today+'T00:00:00-08:00', today+'T23:59:00-08:00'):
-            if 'mixpanel' in event['creator']['email']:
-                vacation_list.add(sf_team_map.get(event['creator']['email']))
-    return list(vacation_list)
-
 def handoff_check(data):
     message = data['text'].lower()
     if "handoff" in message and re.match(r"[^@]+@[^@]+\.[^@]+", message):
@@ -157,13 +157,12 @@ def alias_check(data):
         text = 'from <{at}{0}>: "{message}"\n{teammention}'.format(sender, message=message, teammention=teammention, at=at)
         send_message(text)
 
-IMPACTFUL_DEPLOY = {'waiting':False}
+IMPACTFUL_DEPLOY = {'waiting': False}
 def deploy_check(data):
     if data.get('username') == 'deploy':
-        print data
-        message = data['attachments']['text']
-        if 'sabrina' in message and notIMPACTFUL_DEPLOY['waiting']:
-            send_message('<!channel>: ' + message.replace(' @sabrina @aliisa @Misha @will', ''))
+        message = data['attachments'][0].get('text')
+        if 'started' in message and IMPACTFUL_DEPLOY['waiting']:
+            send_message('<!channel>: ' + message)
             IMPACTFUL_DEPLOY['waiting'] = True
         elif ('deploy' in message) and IMPACTFUL_DEPLOY['waiting']:
             send_message(message)
