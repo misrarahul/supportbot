@@ -25,9 +25,12 @@ except Exception:
 new_session = True
 slack = SlackClient(token)
 
-support_room = "C03QFM9BL"
-mixpanel_room = "C024QH392"
-bot_cantina_room = "C04U9BCCZ"
+SUPPORT_ROOM = "C03QFM9BL"
+MIXPANEL_ROOM = "C024QH392"
+BOT_CANTINA_ROOM = "C04U9BCCZ"
+
+BOT_ID = 'U0B6XV760'
+BOT_MENTION = '<@' + BOT_ID + '>'
 
 stopped = False
 def terminate(signum, frame):
@@ -39,10 +42,10 @@ signal.signal(signal.SIGINT, terminate)
 if debug:
     at = "" # remove mention from the message
     room = 'bot-cantina'
-    active_room_id = bot_cantina_room
+    active_room_id = BOT_CANTINA_ROOM
 else:
     at = "@"
-    active_room_id = support_room
+    active_room_id = SUPPORT_ROOM
 
 sf_team_map = {
     'robert@mixpanel.com': 'U03QUCH68', # Robert Ott
@@ -138,8 +141,8 @@ def _choose_member():
     return picked
 
 def status_check(data):
-    message = data['text'].lower()
-    if message == "support_bot status":
+    message = data['text']
+    if BOT_MENTION in message and 'status' in message.lower():
         send_message('I am active! :blessed:')
 
 def handoff_check(data):
@@ -157,6 +160,10 @@ def alias_check(data):
         text = 'from <{at}{0}>: "{message}"\n{teammention}'.format(sender, message=message, teammention=teammention, at=at)
         send_message(text)
 
+def deploy_subscribe(data):
+    message = data['text'].lower()
+    # if ""
+
 IMPACTFUL_DEPLOY = {'waiting': False}
 def deploy_check(data):
     if data.get('username') == 'deploy':
@@ -173,7 +180,9 @@ def review_message(data):
         status_check(data)
         handoff_check(data)
         alias_check(data)
-    elif data.get('channel') == mixpanel_room:
+        deploy_subscribe(data)
+        print data
+    elif data.get('channel') == MIXPANEL_ROOM:
         deploy_check(data)
 
 if __name__ == "__main__":
