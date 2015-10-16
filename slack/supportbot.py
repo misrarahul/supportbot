@@ -46,9 +46,9 @@ def _closing_options():
     print '\n bye'
     with open(_deploy_file, 'w') as f:
         json.dump(subsribed_deploys, f)
+    send_message('i was not meant for this life')
 
 def terminate(signum, frame):
-    _closing_options()
     global stopped
     stopped = True
 signal.signal(signal.SIGTERM, terminate)
@@ -157,23 +157,26 @@ def _choose_member():
 
     return picked
 
-def _sanitize(text):
+def _sanitize_text(text):
     return text.replace(u'\u201c', '"').lower()
+
+def _sanitize_link(link):
+    return link.replace('<', "").replace('>', "")
 
 def status_check(data):
     message = data['text']
-    if BOT_MENTION in message and 'status' in _sanitize(message):
+    if BOT_MENTION in message and 'status' in _sanitize_text(message):
         send_message('I am active! :blessed:')
 
 def handoff_check(data):
-    message = _sanitize(data['text'])
+    message = _sanitize_text(data['text'])
     if "handoff" in message and re.match(r"[^@]+@[^@]+\.[^@]+", message):
         sender = data.get('user','No One')
         text = '<{at}{0}> Please send an email to support@mixpanel.com with a warm hand off to <{at}{1}>.'.format(sender, _choose_member(), at=at)
         send_message(text)
 
 def alias_check(data):
-    message = _sanitize(data['text'])
+    message = _sanitize_text(data['text'])
     if "@support" in message:
         sender, message = data.get('user', ''), data.get('text').replace('@support ','', 1).encode('ascii', 'ignore')
         teammention = ' '.join(['<{at}{0}>'.format(member, at=at) for member in support_org])
@@ -181,13 +184,16 @@ def alias_check(data):
         send_message(text)
 
 def deploy_subscribe(data):
-    message = _sanitize(data['text'])
+    message = _sanitize_text(data['text'])
     if all (k in message for k in (BOT_MENTION.lower(), 'deploy subscribe')):
         if 'list' in message:
             out = ""
             for i, item in enumerate(subsribed_deploys):
                 out += "%d: %s \n" % (i+1, item)
-            send_message(out)
+            if not out:
+                send_message('No subscriptions currently exist')
+            else:
+                send_message(out)
         elif 'add' in message:
             subsribed_deploys.extend(re.findall('"([^"]*)"', message))
             send_message('deploy subscription added')
@@ -202,11 +208,11 @@ IMPACTFUL_DEPLOY = {'waiting': False}
 def deploy_check(data):
     if data.get('username') == 'deploy':
         message = data['attachments'][0].get('text')
-        if 'started' in message and IMPACTFUL_DEPLOY['waiting']:
-            send_message('<!channel>: ' + message)
+        if any (k in message for k in subsribed_deploys) and not IMPACTFUL_DEPLOY['waiting']:
+            send_message('<!channel>: ' + _sanitize_link(message))
             IMPACTFUL_DEPLOY['waiting'] = True
         elif ('deploy' in message) and IMPACTFUL_DEPLOY['waiting']:
-            send_message(message)
+            send_message(_sanitize_link(message))
             IMPACTFUL_DEPLOY['waiting'] = False
 
 def review_message(data):
