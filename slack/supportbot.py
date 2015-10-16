@@ -160,11 +160,12 @@ def alias_check(data):
 IMPACTFUL_DEPLOY = {'waiting':False}
 def deploy_check(data):
     if data.get('username') == 'deploy':
+        print data
         message = data['attachments']['text']
-        if 'sabrina' in message:
+        if 'sabrina' in message and notIMPACTFUL_DEPLOY['waiting']:
             send_message('<!channel>: ' + message.replace(' @sabrina @aliisa @Misha @will', ''))
             IMPACTFUL_DEPLOY['waiting'] = True
-        elif ('deploying' in message) and IMPACTFUL_DEPLOY['waiting']:
+        elif ('deploy' in message) and IMPACTFUL_DEPLOY['waiting']:
             send_message(message)
             IMPACTFUL_DEPLOY['waiting'] = False
 
@@ -184,7 +185,7 @@ if __name__ == "__main__":
                 print "sending responses to {}".format(room)
                 new_session = False
             for data in slack.rtm_read():
-                if all (k in data for k in ('type', 'text', 'user')) and data['type'] == 'message' and data['text'] and data['user'] != 'U0B6XV760':
+                if all (k in data for k in ('type', 'text')) and data['type'] == 'message':
                     review_message(data)
             sleep(5)
     else:
