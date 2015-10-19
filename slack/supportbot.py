@@ -25,9 +25,9 @@ except Exception:
 new_session = True
 slack = SlackClient(token)
 
-SUPPORT_ROOM = "C03QFM9BL"
-MIXPANEL_ROOM = "C024QH392"
-BOT_CANTINA_ROOM = "C04U9BCCZ"
+SUPPORT_ROOM = 'C03QFM9BL'
+MIXPANEL_ROOM = 'C024QH392'
+BOT_CANTINA_ROOM = 'C04U9BCCZ'
 
 BOT_ID = 'U0B6XV760'
 BOT_MENTION = '<@' + BOT_ID + '>'
@@ -48,8 +48,6 @@ def _closing_options():
     private_message(BOT_OWNERS, 'bot shutdown in %s' % room)
     print '\nbye'
 
-
-
 def terminate(signum, frame):
     global stopped
     stopped = True
@@ -59,11 +57,11 @@ signal.signal(signal.SIGINT, terminate)
 atexit.register(_closing_options)
 
 if debug:
-    at = "" # remove mention from the message
+    at = '' # remove mention from the message
     room = 'bot-cantina'
     active_room_id = BOT_CANTINA_ROOM
 else:
-    at = "@"
+    at = '@'
     active_room_id = SUPPORT_ROOM
 
 sf_team_map = {
@@ -127,11 +125,11 @@ def private_message(users, text):
             )
 
 def _get_user_email(user, printout=False):
-    url = "https://slack.com/api/users.info?token=" % token
+    url = 'https://slack.com/api/users.info?token=' % token
     return json.loads(requests.get(url)).get
 
 def _get_userlist(user, printout=False):
-    url = "https://slack.com/api/users.list?token=" % token
+    url = 'https://slack.com/api/users.list?token=' % token
     data = requests.get(url)
     userlist = json.loads(data.text)['members']
     if printout:
@@ -176,7 +174,7 @@ def _sanitize_text(text):
     return text.replace(u'\u201c', '"').lower()
 
 def _sanitize_link(link):
-    return link.replace('<', "").replace('>', "")
+    return link.replace('<', '').replace('>', '')
 
 def status_check(data):
     message = data['text']
@@ -185,26 +183,25 @@ def status_check(data):
 
 def handoff_check(data):
     message = _sanitize_text(data['text'])
-    if "handoff" in message and re.match(r"[^@]+@[^@]+\.[^@]+", message):
+    if 'handoff' in message and re.match(r'[^@]+@[^@]+\.[^@]+', message):
         sender = data.get('user','No One')
         text = '<{at}{0}> Please send an email to support@mixpanel.com with a warm hand off to <{at}{1}>.'.format(sender, _choose_member(), at=at)
         send_message(text)
 
 def alias_check(data):
     message = _sanitize_text(data['text'])
-    if "@support" in message:
+    if '@support' in message:
         sender, message = data.get('user', ''), data.get('text').replace('@support ','', 1).encode('ascii', 'ignore')
         teammention = ' '.join(['<{at}{0}>'.format(member, at=at) for member in support_org])
-        text = 'from <{at}{0}>: "{message}"\n{teammention}'.format(sender, message=message, teammention=teammention, at=at)
-        send_message(text)
+        send_message('<%(at)s%(sender)s>: "%(message)s"\n%(teammention)s' % {'at': at, 'sender': sender, 'message': message, 'teammention': teammention})
 
 def deploy_subscribe(data):
     message = _sanitize_text(data['text'])
     if all (k in message for k in (BOT_MENTION.lower(), 'deploy subscribe')):
         if 'list' in message:
-            out = ""
+            out = ''
             for i, item in enumerate(subsribed_deploys):
-                out += "%d: %s \n" % (i+1, item)
+                out += '%d: %s \n' % (i+1, item)
             if not out:
                 send_message('No subscriptions currently exist')
             else:
@@ -239,21 +236,22 @@ def review_message(data):
     elif data.get('channel') == MIXPANEL_ROOM:
         deploy_check(data)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    print _vacationers()
     if slack.rtm_connect():
         while not stopped:
             slack.server.ping()
             if new_session:
-                print "sending responses to {}".format(room)
+                print 'sending responses to {}'.format(room)
                 new_session = False
             for data in slack.rtm_read():
                 if all (k in data for k in ('type', 'text')) and data['type'] == 'message':
                     try:
                         review_message(data)
                     except Exception as e:
-                        temp_message = "\nfailed message:\n" + json.dumps(data) + "\n" + str(type(e)) + ": " + str(e)
+                        temp_message = '\nfailed message:\n' + json.dumps(data) + '\n' + str(type(e)) + ': ' + str(e)
                         print temp_message
                         private_message(BOT_OWNERS, temp_message)
             sleep(5)
     else:
-        raise Exception("connection failed")
+        raise Exception('connection failed')
