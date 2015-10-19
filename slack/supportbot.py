@@ -71,9 +71,9 @@ sf_team_map = {
     'karl@mixpanel.com': 'U04U6E9V3', # Karl Moll
     'cassie@mixpanel.com': 'U0517AJF0', # Cassie Gamm
     'maddy@mixpanel.com': 'U04TJQBP6', # Maddie Busacca
-    'ryan.seams@mixpanel.com': 'U04URV3TH', # Arthur Cilley
+    'ryan.seams@mixpanel.com': 'U04TJNQJ8', # Ryan Seams
     'rahul@mixpanel.com': 'U04U6FDR7', # Rahul Misra
-    'arthur@mixpanel.com': 'U04TJNQJ8', # Ryan Seams
+    'arthur@mixpanel.com': 'U04URV3TH', # Arthur Cilley
     'hilary@mixpanel.com': 'U04U6EQ5F', # Hilary Stone
     'christine.kim@mixpanel.com': 'U04TK5XQG', # Christine Kim
     'marina.milenkovic@mixpanel.com': 'U04U76VMM', # Marina Milenkovic
@@ -99,6 +99,7 @@ uppers_map = {
     'daniel@mixpanel.com': 'U03QH6WN0', # Dan Lee
     'marshall@mixpanel.com': 'U0503HD9H', # Marshall Luis Reaves
     'drew@mixpanel.com': 'U04U6L0BH', # Drew Ritter
+    'pj.ople@mixpanel.com': 'U0BM9ARK7', # PJ Ople
 }
 uppers = uppers_map.values()
 
@@ -125,11 +126,11 @@ def private_message(users, text):
             )
 
 def _get_user_email(user, printout=False):
-    url = 'https://slack.com/api/users.info?token=' % token
+    url = 'https://slack.com/api/users.info?token=%s' % token
     return json.loads(requests.get(url)).get
 
-def _get_userlist(user, printout=False):
-    url = 'https://slack.com/api/users.list?token=' % token
+def _get_userlist(printout=False):
+    url = 'https://slack.com/api/users.list?token=%s' % token
     data = requests.get(url)
     userlist = json.loads(data.text)['members']
     if printout:
@@ -237,7 +238,6 @@ def review_message(data):
         deploy_check(data)
 
 if __name__ == '__main__':
-    print _vacationers()
     if slack.rtm_connect():
         while not stopped:
             slack.server.ping()
