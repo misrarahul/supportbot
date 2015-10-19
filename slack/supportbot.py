@@ -225,7 +225,10 @@ def deploy_check(data):
             send_message('<!channel>: ' + _sanitize_link(message))
             IMPACTFUL_DEPLOY['waiting'] = True
         elif ('deploy' in message) and IMPACTFUL_DEPLOY['waiting']:
-            send_message(_sanitize_link(message))
+            if 'failed' in message:
+                send_message('deploy failed')
+            else:
+                send_message(_sanitize_link(message))
             IMPACTFUL_DEPLOY['waiting'] = False
 
 def review_message(data):
