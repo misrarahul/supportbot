@@ -43,10 +43,12 @@ except:
     subsribed_deploys = []
 
 def _closing_options():
-    print '\n bye'
     with open(_deploy_file, 'w') as f:
         json.dump(subsribed_deploys, f)
-    send_message('i was not meant for this life')
+    private_message(BOT_OWNERS, 'bot shutdown in %s' % room)
+    print '\nbye'
+
+
 
 def terminate(signum, frame):
     global stopped
@@ -102,14 +104,27 @@ uppers_map = {
 }
 uppers = uppers_map.values()
 
-
 support_org = sf_team + uppers + emea + sf_newbies
+
+BOT_OWNERS = [
+    sf_team_map['jordan@mixpanel.com'],
+]
 
 def terminate(signum, frame):
     stopped = True
 
 def send_message(text):
     slack.rtm_send_message(room, text)
+
+def private_message(users, text):
+    if isinstance(users, list):
+        for user in users:
+            slack.api_call(
+                'chat.postMessage',
+                channel=user,
+                text=text,
+                username='support bot'
+            )
 
 def _get_user_email(user, printout=False):
     url = "https://slack.com/api/users.info?token=" % token
