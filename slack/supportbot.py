@@ -248,7 +248,12 @@ if __name__ == "__main__":
                 new_session = False
             for data in slack.rtm_read():
                 if all (k in data for k in ('type', 'text')) and data['type'] == 'message':
-                    review_message(data)
+                    try:
+                        review_message(data)
+                    except Exception as e:
+                        temp_message = "\nfailed message:\n" + json.dumps(data) + "\n" + str(type(e)) + ": " + str(e)
+                        print temp_message
+                        private_message(BOT_OWNERS, temp_message)
             sleep(5)
     else:
         raise Exception("connection failed")
