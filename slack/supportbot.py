@@ -220,7 +220,7 @@ def deploy_subscribe(data):
 IMPACTFUL_DEPLOY = {'waiting': False}
 def deploy_check(data):
     if data.get('username') == 'deploy':
-        message = _sanatize_link(data['attachments'][0].get('text').lower())
+        message = _sanitize_link(data['attachments'][0].get('text').lower())
         if any (k in message for k in subscribed_deploys) and not IMPACTFUL_DEPLOY['waiting']:
             if not debug:
                 message = '<!channel>: ' + message
@@ -230,7 +230,7 @@ def deploy_check(data):
             if 'failed' in message:
                 send_message('deploy failed')
             else:
-                send_message(_sanitize_link(message))
+                send_message(message)
             IMPACTFUL_DEPLOY['waiting'] = False
 
 def review_message(data):
