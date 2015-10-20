@@ -38,13 +38,13 @@ stopped = False
 _deploy_file = 'deploy_subscribe.json'
 try:
     with open(_deploy_file) as f:
-        subsribed_deploys = json.load(f)
+        subscribed_deploys = json.load(f)
 except:
-    subsribed_deploys = []
+    subscribed_deploys = []
 
 def _closing_options():
     with open(_deploy_file, 'w') as f:
-        json.dump(subsribed_deploys, f)
+        json.dump(subscribed_deploys, f)
     private_message(BOT_OWNERS, 'bot shutdown in %s' % room)
     print '\nbye'
 
@@ -201,18 +201,18 @@ def deploy_subscribe(data):
     if all (k in message for k in (BOT_MENTION.lower(), 'deploy subscribe')):
         if 'list' in message:
             out = ''
-            for i, item in enumerate(subsribed_deploys):
+            for i, item in enumerate(subscribed_deploys):
                 out += '%d: %s \n' % (i+1, item)
             if not out:
                 send_message('No subscriptions currently exist')
             else:
                 send_message(out)
         elif 'add' in message:
-            subsribed_deploys.extend(re.findall('"([^"]*)"', message))
+            subscribed_deploys.extend(re.findall('"([^"]*)"', message))
             send_message('deploy subscription added')
         elif 'remove' in message:
             try:
-                del subsribed_deploys[int(message.split('remove')[-1])-1]
+                del subscribed_deploys[int(message.split('remove')[-1])-1]
                 send_message('deploy subscription removed')
             except:
                 send_message('invalid input')
@@ -221,7 +221,7 @@ IMPACTFUL_DEPLOY = {'waiting': False}
 def deploy_check(data):
     if data.get('username') == 'deploy':
         message = data['attachments'][0].get('text')
-        if any (k in message for k in subsribed_deploys) and not IMPACTFUL_DEPLOY['waiting']:
+        if any (k in message for k in subscribed_deploys) and not IMPACTFUL_DEPLOY['waiting']:
             if not debug:
                 message = '<!channel>: ' + _sanitize_link(message)
             else:
